@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sertifikat Generator Pro - Multiguna & Massal</title>
+    
+    <!-- Memuat Google Fonts untuk tipografi sertifikat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Great+Vibes&family=Montserrat:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Dancing+Script:wght@600;700&family=Pacifico&family=Lora:ital,wght@0,600;1,600&family=Merriweather:wght@700&family=Oswald:wght@500;600&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Memuat Tailwind CSS untuk styling responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat jsPDF, JSZip, dan FileSaver untuk ekspor PDF dan ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#4338ca',
+                        dark: '#0f172a'
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Pramuat Font */
+        .font-loader { opacity: 0; position: absolute; pointer-events: none; z-index: -1; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-great-vibes { font-family: 'Great Vibes', cursive; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-dancing { font-family: 'Dancing Script', cursive; }
+        .font-pacifico { font-family: 'Pacifico', cursive; }
+        .font-lora { font-family: 'Lora', serif; }
+        .font-merriweather { font-family: 'Merriweather', serif; }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+        .font-roboto { font-family: 'Roboto', sans-serif; }
+        
+        /* Pola background area kerja canvas */
+        #canvas-container {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .dark #canvas-container {
+            background-color: #0f172a;
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+        }
+
+        /* Styling kursor canvas untuk indikasi drag and drop */
+        canvas {
+            cursor: grab;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease;
+        }
+        
+        canvas:active {
+            cursor: grabbing;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <div class="font-loader">
+        <span class="font-cinzel">load</span>
+        <span class="font-great-vibes">load</span>
+        <span class="font-montserrat">load</span>
+        <span class="font-playfair">load</span>
+        <span class="font-dancing">load</span>
+        <span class="font-pacifico">load</span>
+        <span class="font-lora">load</span>
+        <span class="font-merriweather">load</span>
+        <span class="font-oswald">load</span>
+        <span class="font-roboto">load</span>
+    </div>
+
+    <header class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary/10 p-2 rounded-xl text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Sertifikat<span class="text-primary">Pro</span></h1>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block">Generator Sertifikat Bolak-Balik & Cetak Massal</p>
+                </div>
+            </div>
+
+            <!-- Dark Mode & Status -->
+            <div class="flex items-center gap-3 sm:gap-4">
+                <button id="themeToggleBtn" aria-label="Toggle Theme" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center">
+                    <svg id="sunIcon" class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="moonIcon" class="w-5 h-5 block dark:hidden text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path></svg>
+                </button>
+
+                <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Sistem Siap
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
+            
+            <!-- Panel Kontrol (Kiri) -->
+            <div class="w-full lg:w-96 bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-5 transition-colors duration-300">
+                
+                <!-- Kartu Profil Pengembang -->
+                <div class="bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-primary/10 dark:from-indigo-900/40 dark:to-slate-800 p-3.5 rounded-xl border border-indigo-100 dark:border-indigo-900/50 flex items-center gap-3.5">
+                    <div class="relative flex-shrink-0">
+                        <img src="image_3b1264.png" alt="Syahril Nur, M.Pd.,Gr." onerror="this.onerror=null; this.src='https://placehold.co/150x150/4f46e5/ffffff?text=SN';" class="w-12 h-12 object-cover rounded-full ring-2 ring-primary/40 shadow-sm">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
+                    </div>
+                    <div class="overflow-hidden">
+                        <span class="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-primary text-white inline-block mb-0.5">Pengembang</span>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">Syahril Nur, M.Pd.,Gr.</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Sertifikat Generator Pro</p>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 dark:border-slate-700">
+
+                <section>
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-primary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Template Sertifikat</h2>
+                        </div>
+                    </div>
+
+                    <!-- Selector Tab Depan / Belakang -->
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-700/60 rounded-xl mb-3 text-xs font-semibold">
+                        <button id="tabSideFront" class="py-2 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all flex items-center justify-center gap-1.5">
+                            <span>Sisi Depan</span>
+                            <span id="badgeFrontUploaded" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                        </button>
+                        <button id="tabSideBack" class="py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5">
+                            <span>Sisi Belakang</span>
+                            <span id="badgeBackUploaded" class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                        </button>
+                    </div>
+
+                    <!-- Upload Box Depan -->
+                    <div id="dropZoneFront" class="flex justify-center px-4 pt-4 pb-4 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-xl hover:border-primary dark:hover:border-primary transition-colors bg-slate-50 dark:bg-slate-800/50 relative overflow-hidden group cursor-pointer">
+                        <div class="space-y-1 text-center pointer-events-none">
+                            <svg class="mx-auto h-8 w-8 text-slate-400 group-hover:text-primary transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Upload Template <span class="text-primary font-bold">DEPAN</span></p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400">Format JPG atau PNG</p>
+                        </div>
+                        <input id="uploadFront" type="file" accept="image/png, image/jpeg, image/jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+
+                    <!-- Upload Box Belakang -->
+                    <div id="dropZoneBack" class="hidden flex justify-center px-4 pt-4 pb-4 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-xl hover:border-primary dark:hover:border-primary transition-colors bg-slate-50 dark:bg-slate-800/50 relative overflow-hidden group cursor-pointer">
+                        <div class="space-y-1 text-center pointer-events-none">
+                            <svg class="mx-auto h-8 w-8 text-slate-400 group-hover:text-primary transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Upload Template <span class="text-primary font-bold">BELAKANG</span> (Opsional)</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400">Format JPG atau PNG</p>
+                        </div>
+                        <input id="uploadBack" type="file" accept="image/png, image/jpeg, image/jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                </section>
+
+                <hr class="border-slate-100 dark:border-slate-700">
+
+                <section class="opacity-40 pointer-events-none transition-opacity duration-300" id="inputModeSection">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-primary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
+                            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Input Penerima</h2>
+                        </div>
+                    </div>
+
+                    <!-- Switch Mode Single / Multiple -->
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-700/60 rounded-xl mb-3 text-xs font-semibold">
+                        <button id="modeBtnSingle" class="py-1.5 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all">Satu Nama</button>
+                        <button id="modeBtnMultiple" class="py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Banyak Nama (Massal)</button>
+                    </div>
+
+                    <!-- Single Name Input -->
+                    <div id="singleNameContainer">
+                        <label for="recipientName" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
+                        <input type="text" id="recipientName" placeholder="Contoh: Budi Santoso, S.Kom." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm font-medium text-slate-800 dark:text-slate-100">
+                    </div>
+
+                    <!-- Multiple Names Input -->
+                    <div id="multipleNamesContainer" class="hidden space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label for="namesTextarea" class="block text-xs font-medium text-slate-700 dark:text-slate-300">Daftar Nama (1 Nama per Baris)</label>
+                            <label class="text-[10px] text-primary cursor-pointer hover:underline font-bold flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12"></path></svg>
+                                File TXT/CSV
+                                <input type="file" id="fileNamesUpload" accept=".txt, .csv" class="hidden">
+                            </label>
+                        </div>
+                        <textarea id="namesTextarea" rows="4" placeholder="Ketik atau paste nama di sini...&#10;Contoh:&#10;Ahmad Dahlan, M.Pd.&#10;Siti Aminah, S.T.&#10;Dr. Hendra Wijaya" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary outline-none text-xs text-slate-800 dark:text-slate-100 leading-relaxed font-mono"></textarea>
+                        
+                        <div class="flex justify-between items-center text-xs bg-slate-100 dark:bg-slate-700/50 p-2 rounded-lg">
+                            <span class="text-slate-500 dark:text-slate-400">Total Terdeteksi:</span>
+                            <span id="detectedNamesCount" class="font-bold text-primary">0 Nama</span>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-100 dark:border-slate-700">
+
+                <section class="opacity-40 pointer-events-none transition-opacity duration-300 space-y-3" id="typographySection">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-primary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Desain & Format Teks</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="fontFamily" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Jenis Font</label>
+                            <select id="fontFamily" class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-700 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary outline-none text-xs cursor-pointer">
+                                <option value="Great Vibes" class="font-great-vibes text-sm">Great Vibes (Latin)</option>
+                                <option value="Dancing Script" class="font-dancing text-sm">Dancing Script (Latin)</option>
+                                <option value="Pacifico" class="font-pacifico text-xs">Pacifico (Seni)</option>
+                                <option value="Playfair Display" class="font-playfair text-xs">Playfair (Klasik)</option>
+                                <option value="Lora" class="font-lora text-xs">Lora (Klasik Serif)</option>
+                                <option value="Merriweather" class="font-merriweather text-xs">Merriweather (Tegas)</option>
+                                <option value="Cinzel" class="font-cinzel text-xs">Cinzel (Elegan)</option>
+                                <option value="Montserrat" class="font-montserrat text-xs">Montserrat (Modern)</option>
+                                <option value="Oswald" class="font-oswald text-xs">Oswald (Ketat)</option>
+                                <option value="Roboto" class="font-roboto text-xs">Roboto (Standar)</option>
+                                <option value="Arial" class="text-xs">Arial (Dasar)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="textColor" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Warna Teks</label>
+                            <div class="relative rounded-lg overflow-hidden border border-slate-300 dark:border-slate-600 h-[34px]">
+                                <input type="color" id="textColor" value="#1a1a1a" class="absolute -top-2 -left-2 w-[150%] h-[150%] cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <span>Ukuran Teks</span>
+                            <span id="textSizeDisplay" class="text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded text-[11px]">120px</span>
+                        </div>
+                        <input type="range" id="textSize" min="20" max="400" value="120" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary">
+                    </div>
+                </section>
+
+                <hr class="border-slate-100 dark:border-slate-700">
+
+                <section class="opacity-40 pointer-events-none transition-opacity duration-300 space-y-3" id="paperSettingsSection">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-primary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">4</span>
+                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Ukuran Kertas PDF</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="paperSize" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Ukuran Kertas</label>
+                            <select id="paperSize" class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-700 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary outline-none text-xs cursor-pointer">
+                                <option value="original">Asli (Sesuai Gambar)</option>
+                                <option value="a4" selected>A4 (297 x 210 mm)</option>
+                                <option value="letter">Letter (8.5 x 11 in)</option>
+                                <option value="legal">Legal (8.5 x 14 in)</option>
+                                <option value="a5">A5 (210 x 148 mm)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="paperOrientation" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Orientasi</label>
+                            <select id="paperOrientation" class="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-700 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary outline-none text-xs cursor-pointer">
+                                <option value="l" selected>Landscape (Mendatar)</option>
+                                <option value="p">Portrait (Tegak)</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-100 dark:border-slate-700">
+
+                <section class="opacity-40 pointer-events-none transition-opacity duration-300 space-y-2.5" id="actionControls">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-primary text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">5</span>
+                        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Simpan & Cetak</h2>
+                    </div>
+
+                    <!-- Tombol Single Mode Export -->
+                    <div id="singleExportButtons" class="space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btnDownloadJPG" class="flex items-center justify-center gap-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium py-2 px-3 rounded-xl transition-all shadow-sm text-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                JPG (Gambar)
+                            </button>
+                            <button id="btnDownloadPDF" class="flex items-center justify-center gap-1.5 bg-primary hover:bg-secondary text-white font-medium py-2 px-3 rounded-xl shadow-sm transition-all text-xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                Dokumen PDF
+                            </button>
+                        </div>
+                        <button id="btnPrint" class="w-full flex items-center justify-center gap-1.5 bg-dark hover:bg-black dark:bg-slate-900 dark:hover:bg-black text-white font-medium py-2 px-3 rounded-xl shadow-sm transition-all text-xs border border-slate-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Cetak Sertifikat
+                        </button>
+                    </div>
+
+                    <!-- Tombol Multiple/Bulk Export -->
+                    <div id="multipleExportButtons" class="hidden space-y-2">
+                        <button id="btnBatchPDF" class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-secondary text-white font-semibold py-2.5 px-4 rounded-xl shadow transition-all text-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Download Semua (PDF Multi-Halaman)
+                        </button>
+                        <button id="btnBatchZIP" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 px-4 rounded-xl shadow transition-all text-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                            Download Semua (ZIP Gambar JPG)
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+
+            <div class="flex-1 w-full bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center min-h-[550px] relative overflow-hidden transition-colors duration-300" id="canvas-container">
+                
+                <!-- Navbar Top Workspace Canvas -->
+                <div id="canvasToolbar" class="hidden w-full mb-4 flex flex-wrap justify-between items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm z-10">
+                    
+                    <!-- Side Indicator/Selector -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Tampilan Pratinjau:</span>
+                        <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg text-xs font-semibold">
+                            <button id="viewFrontBtn" class="px-3 py-1 rounded-md bg-white dark:bg-slate-800 text-primary shadow-sm">Depan</button>
+                            <button id="viewBackBtn" class="px-3 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900">Belakang</button>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Navigator untuk Mode Banyak Nama -->
+                    <div id="bulkPagination" class="hidden flex items-center gap-2">
+                        <button id="prevNameBtn" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <span id="bulkIndexDisplay" class="text-xs font-bold text-slate-700 dark:text-slate-200 px-2">1 dari 1</span>
+                        <button id="nextNameBtn" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Tip Petunjuk Drag -->
+                    <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-md border border-amber-200 dark:border-amber-800/40">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        <span>Geser Teks Langsung di Gambar</span>
+                    </div>
+                </div>
+
+                <!-- Pesan kondisi kosong -->
+                <div id="emptyState" class="text-center flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 my-auto p-6">
+                    <div class="bg-slate-100 dark:bg-slate-700/50 p-6 rounded-full mb-4">
+                        <svg class="w-16 h-16 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <p class="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-1">Kanvas Belum Aktif</p>
+                    <p class="text-xs text-slate-500 max-w-sm">Upload template gambar sertifikat sisi depan di panel kiri untuk memulai.</p>
+                </div>
+
+                <!-- Canvas Utama -->
+                <canvas id="certificateCanvas" class="hidden max-w-full h-auto rounded-lg ring-1 ring-slate-200 dark:ring-slate-700"></canvas>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="loadingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div>
+                <h3 id="modalTitle" class="text-base font-bold text-slate-800 dark:text-white">Memproses Sertifikat...</h3>
+                <p id="modalSub" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Harap tunggu beberapa saat.</p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div id="modalProgressBar" class="bg-primary h-full w-0 transition-all duration-200"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 opacity-0 transition-all duration-300 bg-dark text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-50 pointer-events-none border border-slate-700">
+        <div class="bg-emerald-500/20 p-1.5 rounded-full">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <span id="toastMsg" class="font-medium text-xs">Operasi Berhasil!</span>
+    </div>
+
+    <script>
+        // Penanganan Tema Dark Mode
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // Inisialisasi jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Referensi DOM Elements
+        const canvas = document.getElementById('certificateCanvas');
+        const ctx = canvas.getContext('2d');
+        const emptyState = document.getElementById('emptyState');
+        const canvasToolbar = document.getElementById('canvasToolbar');
+
+        // Buttons & Tabs
+        const tabSideFront = document.getElementById('tabSideFront');
+        const tabSideBack = document.getElementById('tabSideBack');
+        const dropZoneFront = document.getElementById('dropZoneFront');
+        const dropZoneBack = document.getElementById('dropZoneBack');
+        const uploadFront = document.getElementById('uploadFront');
+        const uploadBack = document.getElementById('uploadBack');
+        const badgeFrontUploaded = document.getElementById('badgeFrontUploaded');
+        const badgeBackUploaded = document.getElementById('badgeBackUploaded');
+
+        // Mode Input
+        const modeBtnSingle = document.getElementById('modeBtnSingle');
+        const modeBtnMultiple = document.getElementById('modeBtnMultiple');
+        const singleNameContainer = document.getElementById('singleNameContainer');
+        const multipleNamesContainer = document.getElementById('multipleNamesContainer');
+        const recipientName = document.getElementById('recipientName');
+        const namesTextarea = document.getElementById('namesTextarea');
+        const fileNamesUpload = document.getElementById('fileNamesUpload');
+        const detectedNamesCount = document.getElementById('detectedNamesCount');
+
+        // Sections
+        const inputModeSection = document.getElementById('inputModeSection');
+        const typographySection = document.getElementById('typographySection');
+        const paperSettingsSection = document.getElementById('paperSettingsSection');
+        const actionControls = document.getElementById('actionControls');
+
+        // Canvas View Controls
+        const viewFrontBtn = document.getElementById('viewFrontBtn');
+        const viewBackBtn = document.getElementById('viewBackBtn');
+        const bulkPagination = document.getElementById('bulkPagination');
+        const prevNameBtn = document.getElementById('prevNameBtn');
+        const nextNameBtn = document.getElementById('nextNameBtn');
+        const bulkIndexDisplay = document.getElementById('bulkIndexDisplay');
+
+        // Styling Controls
+        const fontFamilySelect = document.getElementById('fontFamily');
+        const textColorInput = document.getElementById('textColor');
+        const textSizeInput = document.getElementById('textSize');
+        const textSizeDisplay = document.getElementById('textSizeDisplay');
+        const paperSizeSelect = document.getElementById('paperSize');
+        const paperOrientationSelect = document.getElementById('paperOrientation');
+
+        // Export Buttons
+        const singleExportButtons = document.getElementById('singleExportButtons');
+        const multipleExportButtons = document.getElementById('multipleExportButtons');
+        const btnDownloadJPG = document.getElementById('btnDownloadJPG');
+        const btnDownloadPDF = document.getElementById('btnDownloadPDF');
+        const btnPrint = document.getElementById('btnPrint');
+        const btnBatchPDF = document.getElementById('btnBatchPDF');
+        const btnBatchZIP = document.getElementById('btnBatchZIP');
+
+        // Modal Elements
+        const loadingModal = document.getElementById('loadingModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSub = document.getElementById('modalSub');
+        const modalProgressBar = document.getElementById('modalProgressBar');
+
+        let templates = {
+            front: null,
+            back: null
+        };
+        let activeSide = 'front'; // 'front' | 'back'
+        let inputMode = 'single'; // 'single' | 'multiple'
+
+        // Text State Per Side
+        let textStates = {
+            front: { text: 'Nama Lengkap Penerima', x: 0, y: 0, font: 'Great Vibes', color: '#1a1a1a', size: 120 },
+            back: { text: 'Nama Lengkap Penerima', x: 0, y: 0, font: 'Great Vibes', color: '#1a1a1a', size: 120 }
+        };
+
+        // Bulk Names State
+        let bulkNamesList = [];
+        let currentBulkIndex = 0;
+
+        // State Dragging
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        function showLoading(title, sub) {
+            modalTitle.innerText = title;
+            modalSub.innerText = sub;
+            modalProgressBar.style.width = '0%';
+            loadingModal.classList.remove('hidden');
+            loadingModal.classList.add('flex');
+        }
+
+        function updateLoadingProgress(percent) {
+            modalProgressBar.style.width = `${percent}%`;
+        }
+
+        function hideLoading() {
+            loadingModal.classList.add('hidden');
+            loadingModal.classList.remove('flex');
+        }
+
+        function renderCanvas(targetSide = activeSide, customText = null) {
+            const currentImg = templates[targetSide];
+            if (!currentImg) {
+                if (targetSide === activeSide) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                return;
+            }
+
+            // SELALU Set ukuran canvas dan gambar template (agar fungsi ekspor berhasil render background)
+            canvas.width = currentImg.width;
+            canvas.height = currentImg.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+
+            // JANGAN MERENDER NAMA PADA SISI BELAKANG SERTIFIKAT
+            if (targetSide === 'back') {
+                return;
+            }
+
+            // Tentukan Teks yang digambar (Hanya dieksekusi untuk sisi depan)
+            const state = textStates[targetSide];
+            let nameToRender = '';
+
+            if (customText !== null) {
+                nameToRender = customText;
+            } else if (inputMode === 'single') {
+                nameToRender = recipientName.value.trim() !== '' ? recipientName.value : state.text;
+            } else {
+                nameToRender = bulkNamesList[currentBulkIndex] || 'Nama Penerima';
+            }
+
+            // Atur Font & Style
+            ctx.font = `${state.size}px '${state.font}'`;
+            ctx.fillStyle = state.color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(nameToRender, state.x, state.y);
+        }
+
+        function getCurrentActiveName() {
+            if (inputMode === 'single') {
+                return recipientName.value.trim() || 'Sertifikat';
+            } else {
+                return bulkNamesList[currentBulkIndex] || 'Sertifikat';
+            }
+        }
+
+        function unlockUI() {
+            emptyState.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            canvasToolbar.classList.remove('hidden');
+
+            inputModeSection.classList.remove('opacity-40', 'pointer-events-none');
+            typographySection.classList.remove('opacity-40', 'pointer-events-none');
+            paperSettingsSection.classList.remove('opacity-40', 'pointer-events-none');
+            actionControls.classList.remove('opacity-40', 'pointer-events-none');
+        }
+
+        tabSideFront.addEventListener('click', () => {
+            tabSideFront.className = "py-2 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all flex items-center justify-center gap-1.5";
+            tabSideBack.className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5";
+            dropZoneFront.classList.remove('hidden');
+            dropZoneBack.classList.add('hidden');
+            switchActiveSide('front');
+        });
+
+        tabSideBack.addEventListener('click', () => {
+            tabSideBack.className = "py-2 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all flex items-center justify-center gap-1.5";
+            tabSideFront.className = "py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5";
+            dropZoneBack.classList.remove('hidden');
+            dropZoneFront.classList.add('hidden');
+            switchActiveSide('back');
+        });
+
+        function switchActiveSide(side) {
+            activeSide = side;
+
+            if (side === 'front') {
+                viewFrontBtn.className = "px-3 py-1 rounded-md bg-white dark:bg-slate-800 text-primary shadow-sm font-bold";
+                viewBackBtn.className = "px-3 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900";
+                
+                // Aktifkan pengaturan teks saat di sisi depan
+                typographySection.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                viewBackBtn.className = "px-3 py-1 rounded-md bg-white dark:bg-slate-800 text-primary shadow-sm font-bold";
+                viewFrontBtn.className = "px-3 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900";
+                
+                // Matikan pengaturan teks saat di sisi belakang
+                typographySection.classList.add('opacity-40', 'pointer-events-none');
+            }
+
+            if (side === 'front') {
+                const state = textStates[activeSide];
+                fontFamilySelect.value = state.font;
+                textColorInput.value = state.color;
+                textSizeInput.value = state.size;
+                textSizeDisplay.innerText = `${state.size}px`;
+            }
+
+            if (templates[activeSide]) {
+                canvas.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                document.fonts.ready.then(() => renderCanvas());
+            } else {
+                canvas.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            }
+        }
+
+        viewFrontBtn.addEventListener('click', () => switchActiveSide('front'));
+        viewBackBtn.addEventListener('click', () => switchActiveSide('back'));
+
+        uploadFront.addEventListener('change', function(e) {
+            handleTemplateUpload(e.target.files[0], 'front');
+        });
+
+        uploadBack.addEventListener('change', function(e) {
+            handleTemplateUpload(e.target.files[0], 'back');
+        });
+
+        function handleTemplateUpload(file, side) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    templates[side] = img;
+                    
+                    textStates[side].x = img.width / 2;
+                    textStates[side].y = img.height / 2;
+
+                    if (side === 'front') {
+                        badgeFrontUploaded.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    } else {
+                        badgeBackUploaded.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    }
+
+                    unlockUI();
+                    switchActiveSide(side);
+                    showToast(`Template ${side === 'front' ? 'Depan' : 'Belakang'} Berhasil Dimuat!`);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        modeBtnSingle.addEventListener('click', () => {
+            inputMode = 'single';
+            modeBtnSingle.className = "py-1.5 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all";
+            modeBtnMultiple.className = "py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
+            singleNameContainer.classList.remove('hidden');
+            multipleNamesContainer.classList.add('hidden');
+            bulkPagination.classList.add('hidden');
+            singleExportButtons.classList.remove('hidden');
+            multipleExportButtons.classList.add('hidden');
+            renderCanvas();
+        });
+
+        modeBtnMultiple.addEventListener('click', () => {
+            inputMode = 'multiple';
+            modeBtnMultiple.className = "py-1.5 rounded-lg bg-white dark:bg-slate-800 shadow text-primary font-bold transition-all";
+            modeBtnSingle.className = "py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
+            multipleNamesContainer.classList.remove('hidden');
+            singleNameContainer.classList.add('hidden');
+            bulkPagination.classList.remove('hidden');
+            multipleExportButtons.classList.remove('hidden');
+            singleExportButtons.classList.add('hidden');
+            updateBulkNamesList();
+        });
+
+        function updateBulkNamesList() {
+            const rawText = namesTextarea.value;
+            bulkNamesList = rawText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+            
+            detectedNamesCount.innerText = `${bulkNamesList.length} Nama`;
+
+            if (currentBulkIndex >= bulkNamesList.length) {
+                currentBulkIndex = Math.max(0, bulkNamesList.length - 1);
+            }
+
+            updatePaginationUI();
+            renderCanvas();
+        }
+
+        namesTextarea.addEventListener('input', updateBulkNamesList);
+
+        fileNamesUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                namesTextarea.value = evt.target.result;
+                updateBulkNamesList();
+                showToast("Daftar nama dari file berhasil dimuat!");
+            };
+            reader.readAsText(file);
+        });
+
+        function updatePaginationUI() {
+            if (bulkNamesList.length === 0) {
+                bulkIndexDisplay.innerText = "0 dari 0";
+            } else {
+                bulkIndexDisplay.innerText = `${currentBulkIndex + 1} dari ${bulkNamesList.length}`;
+            }
+        }
+
+        prevNameBtn.addEventListener('click', () => {
+            if (currentBulkIndex > 0) {
+                currentBulkIndex--;
+                updatePaginationUI();
+                renderCanvas();
+            }
+        });
+
+        nextNameBtn.addEventListener('click', () => {
+            if (currentBulkIndex < bulkNamesList.length - 1) {
+                currentBulkIndex++;
+                updatePaginationUI();
+                renderCanvas();
+            }
+        });
+
+        recipientName.addEventListener('input', () => renderCanvas());
+
+        fontFamilySelect.addEventListener('change', (e) => {
+            textStates[activeSide].font = e.target.value;
+            document.fonts.ready.then(() => renderCanvas());
+        });
+
+        textColorInput.addEventListener('input', (e) => {
+            textStates[activeSide].color = e.target.value;
+            renderCanvas();
+        });
+
+        textSizeInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            textStates[activeSide].size = val;
+            textSizeDisplay.innerText = `${val}px`;
+            renderCanvas();
+        });
+
+        function getMousePos(canvasEl, evt) {
+            const rect = canvasEl.getBoundingClientRect();
+            const scaleX = canvasEl.width / rect.width;
+            const scaleY = canvasEl.height / rect.height;
+
+            let clientX = evt.clientX;
+            let clientY = evt.clientY;
+
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            }
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function isMouseInText(mousePos) {
+            const state = textStates[activeSide];
+            ctx.font = `${state.size}px '${state.font}'`;
+            const activeText = getCurrentActiveName();
+            const metrics = ctx.measureText(activeText);
+            
+            const textWidth = metrics.width;
+            const textHeight = state.size;
+
+            const left = state.x - (textWidth / 2);
+            const right = state.x + (textWidth / 2);
+            const top = state.y - (textHeight / 2);
+            const bottom = state.y + (textHeight / 2);
+
+            const padding = 35;
+
+            return (mousePos.x >= left - padding && mousePos.x <= right + padding &&
+                    mousePos.y >= top - padding && mousePos.y <= bottom + padding);
+        }
+
+        function onPointerDown(e) {
+            if (!templates[activeSide]) return;
+            if (activeSide === 'back') return;
+            
+            if(e.type === 'touchstart') e.preventDefault(); 
+
+            const pos = getMousePos(canvas, e);
+            if (isMouseInText(pos)) {
+                isDragging = true;
+                dragStartX = pos.x - textStates[activeSide].x;
+                dragStartY = pos.y - textStates[activeSide].y;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) {
+                if(!templates[activeSide]) return;
+                if (activeSide === 'back') {
+                    canvas.style.cursor = 'default';
+                    return;
+                }
+                const pos = getMousePos(canvas, e);
+                canvas.style.cursor = isMouseInText(pos) ? 'grab' : 'default';
+                return;
+            }
+            if(e.type === 'touchmove') e.preventDefault();
+
+            const pos = getMousePos(canvas, e);
+            textStates[activeSide].x = pos.x - dragStartX;
+            textStates[activeSide].y = pos.y - dragStartY;
+            renderCanvas();
+        }
+
+        function onPointerUp() {
+            isDragging = false;
+            if(templates[activeSide]) canvas.style.cursor = 'grab';
+        }
+
+        canvas.addEventListener('mousedown', onPointerDown);
+        canvas.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+
+        canvas.addEventListener('touchstart', onPointerDown, {passive: false});
+        canvas.addEventListener('touchmove', onPointerMove, {passive: false});
+        window.addEventListener('touchend', onPointerUp);
+
+        function generateSingleCertificatePDF(nameText) {
+            const paperSize = paperSizeSelect.value;
+            const orientation = paperOrientationSelect.value;
+
+            // Render Sisi Depan
+            renderCanvas('front', nameText);
+            const frontDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+
+            let pdf;
+            if (paperSize === 'original') {
+                pdf = new jsPDF({
+                    orientation: orientation,
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(frontDataUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
+            } else {
+                pdf = new jsPDF({
+                    orientation: orientation,
+                    unit: 'mm',
+                    format: paperSize
+                });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                pdf.addImage(frontDataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            }
+
+            // Tambahkan Sisi Belakang jika template belakang diunggah
+            if (templates.back) {
+                renderCanvas('back', nameText);
+                const backDataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                
+                if (paperSize === 'original') {
+                    pdf.addPage([templates.back.width, templates.back.height], orientation);
+                    pdf.addImage(backDataUrl, 'JPEG', 0, 0, templates.back.width, templates.back.height);
+                } else {
+                    pdf.addPage(paperSize, orientation);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    pdf.addImage(backDataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+            }
+
+            renderCanvas(activeSide);
+            return pdf;
+        }
+
+        btnDownloadJPG.addEventListener('click', async () => {
+            if (!templates.front) return;
+            const name = getCurrentActiveName();
+
+            if (templates.back) {
+                showLoading("Membuat Arsip ZIP...", "Menggabungkan sisi depan dan belakang...");
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const zip = new JSZip();
+                
+                // Render Depan (dengan nama)
+                renderCanvas('front', name);
+                const frontData = canvas.toDataURL('image/jpeg', 1.0).split(',')[1];
+                zip.file(`Sertifikat_${name}_Depan.jpg`, frontData, {base64: true});
+
+                // Render Belakang (tanpa nama)
+                renderCanvas('back', name);
+                const backData = canvas.toDataURL('image/jpeg', 1.0).split(',')[1];
+                zip.file(`Sertifikat_${name}_Belakang.jpg`, backData, {base64: true});
+
+                renderCanvas(activeSide);
+
+                const content = await zip.generateAsync({type: "blob"});
+                saveAs(content, `Sertifikat_${name}_Bolak_Balik.zip`);
+                hideLoading();
+                showToast('Arsip ZIP Sertifikat berhasil diunduh!');
+            } else {
+                renderCanvas('front', name);
+                const link = document.createElement('a');
+                link.download = `Sertifikat_${name}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 1.0);
+                link.click();
+                renderCanvas(activeSide);
+                showToast('Gambar Sertifikat berhasil diunduh!');
+            }
+        });
+
+        btnDownloadPDF.addEventListener('click', () => {
+            if (!templates.front) return;
+            const name = getCurrentActiveName();
+            showToast('Memproses dokumen PDF...');
+            setTimeout(() => {
+                const pdf = generateSingleCertificatePDF(name);
+                pdf.save(`Sertifikat_${name}.pdf`);
+                showToast('Sertifikat PDF berhasil diunduh!');
+            }, 100);
+        });
+
+        btnPrint.addEventListener('click', () => {
+            if (!templates.front) return;
+            showToast('Menyiapkan mode cetak...');
+            
+            const name = getCurrentActiveName();
+            renderCanvas('front', name);
+            const frontImg = canvas.toDataURL('image/jpeg', 1.0);
+            
+            let backImg = null;
+            if (templates.back) {
+                renderCanvas('back', name);
+                backImg = canvas.toDataURL('image/jpeg', 1.0);
+            }
+            renderCanvas(activeSide);
+
+            let printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Cetak Sertifikat - ${name}</title>
+                    <style>
+                        @page { margin: 0; size: auto; }
+                        body { margin: 0; padding: 0; background: #fff; text-align: center; }
+                        .page { page-break-after: always; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+                    </style>
+                </head>
+                <body>
+                    <div class="page"><img src="${frontImg}" /></div>
+                    ${backImg ? `<div class="page"><img src="${backImg}" /></div>` : ''}
+                    <script>
+                        window.onload = function() {
+                            setTimeout(() => { window.print(); window.close(); }, 300);
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        });
+
+        btnBatchPDF.addEventListener('click', async () => {
+            if (!templates.front) return;
+            if (bulkNamesList.length === 0) {
+                showToast("Silakan isi daftar nama terlebih dahulu!");
+                return;
+            }
+
+            showLoading("Memproses PDF Massal...", `Membuat ${bulkNamesList.length} sertifikat...`);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const paperSize = paperSizeSelect.value;
+            const orientation = paperOrientationSelect.value;
+            let masterPdf = null;
+
+            for (let i = 0; i < bulkNamesList.length; i++) {
+                const name = bulkNamesList[i];
+                updateLoadingProgress(Math.round(((i + 1) / bulkNamesList.length) * 100));
+                modalSub.innerText = `Memproses: ${name} (${i + 1} dari ${bulkNamesList.length})`;
+
+                if (i % 5 === 0) await new Promise(resolve => setTimeout(resolve, 15));
+
+                renderCanvas('front', name);
+                const frontUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+                if (i === 0) {
+                    if (paperSize === 'original') {
+                        masterPdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height] });
+                        masterPdf.addImage(frontUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
+                    } else {
+                        masterPdf = new jsPDF({ orientation, unit: 'mm', format: paperSize });
+                        masterPdf.addImage(frontUrl, 'JPEG', 0, 0, masterPdf.internal.pageSize.getWidth(), masterPdf.internal.pageSize.getHeight());
+                    }
+                } else {
+                    if (paperSize === 'original') {
+                        masterPdf.addPage([canvas.width, canvas.height], orientation);
+                        masterPdf.addImage(frontUrl, 'JPEG', 0, 0, canvas.width, canvas.height);
+                    } else {
+                        masterPdf.addPage(paperSize, orientation);
+                        masterPdf.addImage(frontUrl, 'JPEG', 0, 0, masterPdf.internal.pageSize.getWidth(), masterPdf.internal.pageSize.getHeight());
+                    }
+                }
+
+                if (templates.back) {
+                    renderCanvas('back', name);
+                    const backUrl = canvas.toDataURL('image/jpeg', 0.95);
+                    if (paperSize === 'original') {
+                        masterPdf.addPage([templates.back.width, templates.back.height], orientation);
+                        masterPdf.addImage(backUrl, 'JPEG', 0, 0, templates.back.width, templates.back.height);
+                    } else {
+                        masterPdf.addPage(paperSize, orientation);
+                        masterPdf.addImage(backUrl, 'JPEG', 0, 0, masterPdf.internal.pageSize.getWidth(), masterPdf.internal.pageSize.getHeight());
+                    }
+                }
+            }
+
+            masterPdf.save(`Sertifikat_Massal_${bulkNamesList.length}_Penerima.pdf`);
+            renderCanvas(activeSide);
+            hideLoading();
+            showToast("Berhasil mengunduh dokumen PDF Massal!");
+        });
+
+        btnBatchZIP.addEventListener('click', async () => {
+            if (!templates.front) return;
+            if (bulkNamesList.length === 0) {
+                showToast("Silakan isi daftar nama terlebih dahulu!");
+                return;
+            }
+
+            showLoading("Membuat Arsip ZIP...", `Mengompres gambar sertifikat...`);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const zip = new JSZip();
+            const folder = zip.folder("Sertifikat");
+
+            for (let i = 0; i < bulkNamesList.length; i++) {
+                const name = bulkNamesList[i];
+                updateLoadingProgress(Math.round(((i + 1) / bulkNamesList.length) * 100));
+                modalSub.innerText = `Menyiapkan: ${name} (${i + 1} dari ${bulkNamesList.length})`;
+
+                if (i % 5 === 0) await new Promise(resolve => setTimeout(resolve, 15));
+
+                renderCanvas('front', name);
+                const frontData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+                folder.file(`${i+1}_Sertifikat_Depan_${name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.jpg`, frontData, {base64: true});
+
+                if (templates.back) {
+                    renderCanvas('back', name);
+                    const backData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+                    folder.file(`${i+1}_Sertifikat_Belakang_${name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}.jpg`, backData, {base64: true});
+                }
+            }
+
+            renderCanvas(activeSide);
+            modalSub.innerText = "Menyatukan file ZIP... (Mohon tunggu sebentar)";
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const content = await zip.generateAsync({type: "blob"});
+            saveAs(content, `Sertifikat_Gambar_Massal.zip`);
+            hideLoading();
+            showToast("Arsip ZIP gambar sertifikat berhasil diunduh!");
+        });
+
+    </script>
+</body>
+</html>
